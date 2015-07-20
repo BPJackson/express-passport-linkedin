@@ -5,6 +5,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var cookieSession = require('cookie-session');
 var passport = require('passport')
 var LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 
@@ -16,15 +17,14 @@ var app = express();
 app.use(passport.initialize());
 
 passport.use(new LinkedInStrategy({
-    clientID: process.env.LINKEDIN_CLIENT_ID,
-    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    callbackURL: process.env.HOST + "/auth/linkedin/callback",
-    scope: ['r_emailaddress', 'r_basicprofile']
-  },
-  function(accessToken, refreshToken, profile, done) {
-    done(null, {id: profile.id, displayName: profile.displayName, token: accessToken})
-  }
-));
+  clientID: process.env.LINKEDIN_CLIENT_ID,
+  clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+  callbackURL: process.env.HOST + "/auth/linkedin/callback",
+  scope: ['r_emailaddress', 'r_basicprofile'],
+  state: true
+}, function(accessToken, refreshToken, profile, done) {
+  done(null, {id: profile.id, displayName: profile.displayName})
+}));
 app.get('/auth/linkedin',
   passport.authenticate('linkedin', { state: 'SOME STATE'  }),
   function(req, res){
@@ -48,6 +48,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(function (req, res, next) {
+  res.locals.user = req.user
+  next()
+})
 
 app.use('/', routes);
 app.use('/users', users);
