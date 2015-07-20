@@ -14,8 +14,8 @@ var app = express();
 app.use(passport.initialize());
 
 passport.use(new LinkedInStrategy({
-  clientID: '783kvb1wqz3qbo',
-  clientSecret: 'Lq9K44iUNXVHTiUX',
+  clientID: process.env.LINKEDIN_CLIENT_ID,
+  clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
   callbackURL: "http://localhost:3000/auth/linkedin/callback",
   scope: ['r_emailaddress', 'r_basicprofile'],
 }, function(accessToken, refreshToken, profile, done) {
